@@ -6,6 +6,7 @@ import it.fabrik.error.ErrorMessage;
 import it.fabrik.error.ErrorResponse;
 import it.fabrik.exception.JwtException;
 import it.fabrik.exception.banking.AccountBalanceException;
+import it.fabrik.exception.banking.AccountTransactionsException;
 import it.fabrik.exception.banking.CreateMoneyTransferException;
 import it.fabrik.request.banking.CreateMoneyTransferRequest;
 import it.fabrik.response.banking.AccountBalanceResponse;
@@ -114,9 +115,41 @@ public class BankingController {
 
     @Auth
     @RequestMapping(value = "/accountTransactions", method = RequestMethod.POST)
-    public ResponseEntity accountTransactions(@RequestHeader(name = "Authorization") String bearer, @RequestHeader(name = "Request-Id") UUID requestId) {
-//TODO gestire i movimenti con persistenza
-        return new ResponseEntity<>(true, HttpStatus.OK);
+    public ResponseEntity accountTransactions(@RequestParam String fromAccountingDate, @RequestParam String toAccountingDate, @RequestHeader(name = "Authorization") String bearer, @RequestHeader(name = "Request-Id") UUID requestId) {
+
+
+        String accountId;
+        try {
+            accountId = jwtService.getAccountIdFromToken(bearer);
+        } catch (JwtException e) {
+            ErrorResponse errorResponse = ErrorResponse.builder()
+                    .type(ErrorCode.JWT_ERROR.getCode())
+                    .message(ErrorMessage.JWT_ERROR.getMessage())
+                    .status("FAILURE")
+                    .requestId(requestId)
+                    .build();
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+        }
+
+        CreateMoneyTransfer accountTrannsaction;
+        try {
+            accountTrannsaction = bankingService.accountTransactions(accountId, fromAccountingDate, toAccountingDate);
+        } catch (AccountTransactionsException e) {
+            ErrorResponse errorResponse = ErrorResponse.builder()
+                    .type(ErrorCode.ACCOUNT_TANSTACTIONS_ERROR.getCode())
+                    .message(ErrorMessage.ACCOUNT_TANSTACTIONS_ERROR.getMessage())
+                    .status("FAILURE")
+                    .requestId(requestId)
+                    .build();
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        CreateMoneyTransferResponse createMoneyTransferResponse = CreateMoneyTransferResponse.builder()
+                .requestId(requestId)
+                .createMoneyTransfer(accountTrannsaction)
+                .build();
+        return new ResponseEntity<>(createMoneyTransferResponse, HttpStatus.OK);
 
     }
 
