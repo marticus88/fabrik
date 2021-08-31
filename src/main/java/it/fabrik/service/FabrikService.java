@@ -3,11 +3,13 @@ package it.fabrik.service;
 import it.fabrik.exception.banking.AccountBalanceException;
 import it.fabrik.exception.banking.AccountTransactionsException;
 import it.fabrik.exception.banking.CreateMoneyTransferException;
+import it.fabrik.fabrikServiceResponse.FabrikAccountTransactionsResponse;
 import it.fabrik.fabrikServiceResponse.FabrikBalanceResponse;
 import it.fabrik.fabrikServiceResponse.FabrikCreateMoneyTransferResponse;
 import it.fabrik.request.banking.CreateMoneyTransferRequest;
 import it.fabrik.valueobject.Balance;
 import it.fabrik.valueobject.CreateMoneyTransfer;
+import it.fabrik.valueobject.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -16,7 +18,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.List;
 
 
 @Slf4j
@@ -99,7 +102,7 @@ public class FabrikService {
         return resp.getPayload();
     }
 
-    public CreateMoneyTransfer fabrikAccountTransactions(String accountId, String fromAccountingDate, String toAccountingDate) throws AccountTransactionsException {
+    public List<Transaction> fabrikAccountTransactions(String accountId, String fromAccountingDate, String toAccountingDate) throws AccountTransactionsException {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -108,18 +111,14 @@ public class FabrikService {
 
         HttpEntity request = new HttpEntity(headers);
 
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(fabrikAccountTransactionsUrl)
-                .queryParam("fromAccountingDate", fromAccountingDate)
-                .queryParam("toAccountingDate", toAccountingDate);
-
-        FabrikCreateMoneyTransferResponse resp;
+        FabrikAccountTransactionsResponse resp;
         try {
             resp = restTemplate.exchange(
-                    builder.toUriString(),
+                    fabrikAccountTransactionsUrl,
                     HttpMethod.GET,
                     request,
-                    FabrikCreateMoneyTransferResponse.class,
-                    accountId
+                    FabrikAccountTransactionsResponse.class,
+                    accountId, fromAccountingDate, toAccountingDate
             ).getBody();
         } catch (Exception e) {
             log.error("Fabik accountTransactions Exception {}", e.getMessage());
@@ -131,7 +130,7 @@ public class FabrikService {
             throw new AccountTransactionsException("Fabik accountTransactions error");
         }
 
-        return resp.getPayload();
+        return resp.getPayload().getList();
     }
 
 }

@@ -2,7 +2,9 @@ package it.fabrik.entity;
 
 import lombok.*;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -17,15 +19,12 @@ import java.util.Date;
 public class TransactionEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "transaction_seq")
-    @SequenceGenerator(name = "transaction_seq", sequenceName = "transaction_seq", allocationSize = 1)
-    private Integer id;
-
-    private String accountId;
     private String transactionId;
+    private String accountId;
     private String operationId;
-    private Date accountingDate;
-    private Date valueDate;
-    private String typeEnumerration;
-    private String typevalue;
+    private String accountingDate;
+    private String valueDate;
+    private String typeEnumeration;
+    private String typeValue;
+    private Date searchDate;
 }

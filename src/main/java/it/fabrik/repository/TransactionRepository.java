@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface TransactionRepository extends CrudRepository<TransactionEntity, Integer> {
 
-    List<TransactionEntity> findAllByAccountIdAndAccountingDateBetween(String accountId, Date from, Date to);
+    List<TransactionEntity> findAllByAccountIdAndSearchDateBetween(String accountId, Date from, Date to);
 }

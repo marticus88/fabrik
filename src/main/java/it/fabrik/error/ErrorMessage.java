@@ -10,6 +10,7 @@ public enum ErrorMessage {
     ACCOUNT_BALANCE_ERROR("Fabrik account balance fail"),
     MONEY_TRANSFER_ERROR("Fabrik money trasfer fail"),
     ACCOUNT_TANSTACTIONS_ERROR("Fabrik account transaction fail"),
+    GENERIC_ERROR("Generic error"),
     SESSION_EXPIRED("Session expired");
 
     private String message;

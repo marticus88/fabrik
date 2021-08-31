@@ -10,16 +10,20 @@ import it.fabrik.exception.banking.AccountTransactionsException;
 import it.fabrik.exception.banking.CreateMoneyTransferException;
 import it.fabrik.request.banking.CreateMoneyTransferRequest;
 import it.fabrik.response.banking.AccountBalanceResponse;
+import it.fabrik.response.banking.AccountTransactionsResponse;
 import it.fabrik.response.banking.CreateMoneyTransferResponse;
 import it.fabrik.service.BankingService;
 import it.fabrik.service.JwtService;
 import it.fabrik.valueobject.Balance;
 import it.fabrik.valueobject.CreateMoneyTransfer;
+import it.fabrik.valueobject.Transaction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.ParseException;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -132,9 +136,9 @@ public class BankingController {
             return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
 
-        CreateMoneyTransfer accountTrannsaction;
+        List<Transaction> transactions;
         try {
-            accountTrannsaction = bankingService.accountTransactions(accountId, fromAccountingDate, toAccountingDate);
+            transactions = bankingService.accountTransactions(accountId, fromAccountingDate, toAccountingDate);
         } catch (AccountTransactionsException e) {
             ErrorResponse errorResponse = ErrorResponse.builder()
                     .type(ErrorCode.ACCOUNT_TANSTACTIONS_ERROR.getCode())
@@ -144,12 +148,21 @@ public class BankingController {
                     .build();
 
             return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+        } catch (ParseException e) {
+            ErrorResponse errorResponse = ErrorResponse.builder()
+                    .type(ErrorCode.GENERIC_ERROR.getCode())
+                    .message(ErrorMessage.GENERIC_ERROR.getMessage())
+                    .status("FAILURE")
+                    .requestId(requestId)
+                    .build();
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
         }
-        CreateMoneyTransferResponse createMoneyTransferResponse = CreateMoneyTransferResponse.builder()
+        AccountTransactionsResponse accountTransactionsResponse = AccountTransactionsResponse.builder()
                 .requestId(requestId)
-                .createMoneyTransfer(accountTrannsaction)
+                .transactions(transactions)
                 .build();
-        return new ResponseEntity<>(createMoneyTransferResponse, HttpStatus.OK);
+        return new ResponseEntity<>(accountTransactionsResponse, HttpStatus.OK);
 
     }
 
